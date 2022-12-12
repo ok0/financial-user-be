@@ -10,16 +10,16 @@ spring:
 
 ---
 datasource:
-  financial-products:
+  user:
     master:
       jdbc-url: jdbc:mysql://localhost:3306/financial_user?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8
       username: root
       password: root
-      pool-name: HikariPool-financial-products-master
+      pool-name: HikariPool-user-master
       maximum-pool-size: 2
     slave:
       jdbc-url: jdbc:mysql://localhost:3306/financial_user?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8
       username: root
       password: root
-      pool-name: HikariPool-financial-products-slave
+      pool-name: HikariPool-user-slave
       maximum-pool-size: 2
