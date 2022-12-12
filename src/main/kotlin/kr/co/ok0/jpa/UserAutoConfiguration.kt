@@ -19,7 +19,7 @@ import javax.sql.DataSource
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-  basePackages = ["kr.co.ok0.repository"],
+  basePackages = ["kr.co.ok0.api.repository"],
   entityManagerFactoryRef = "userEntityManagerFactory",
   transactionManagerRef =  "userTransactionManager"
 )
@@ -60,7 +60,7 @@ class UserAutoConfiguration(
   fun userEntityManagerFactory(): LocalContainerEntityManagerFactoryBean {
     return LocalContainerEntityManagerFactoryBean().apply {
       dataSource = userSlaveDataSource()
-      setPackagesToScan("kr.co.ok0.repository.entity")
+      setPackagesToScan("kr.co.ok0.api.repository.entity")
       jpaVendorAdapter = HibernateJpaVendorAdapter().apply {
         setShowSql(japProperties.isShowSql)
         setGenerateDdl(japProperties.isGenerateDdl)
