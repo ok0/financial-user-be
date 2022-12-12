@@ -1,0 +1,25 @@
+spring.output.ansi.enabled: ALWAYS
+
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        show-sql: true
+        format_sql: true
+
+---
+datasource:
+  financial-products:
+    master:
+      jdbc-url: jdbc:mysql://localhost:3306/financial_user?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8
+      username: root
+      password: root
+      pool-name: HikariPool-financial-products-master
+      maximum-pool-size: 2
+    slave:
+      jdbc-url: jdbc:mysql://localhost:3306/financial_user?zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8
+      username: root
+      password: root
+      pool-name: HikariPool-financial-products-slave
+      maximum-pool-size: 2
