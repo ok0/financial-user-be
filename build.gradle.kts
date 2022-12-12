@@ -69,5 +69,11 @@ allprojects {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+    api("com.querydsl:querydsl-jpa")
+    kapt("com.querydsl:querydsl-apt::jpa")
+
+    runtimeOnly("mysql:mysql-connector-java")
+    annotationProcessor(group = "com.querydsl", name = "querydsl-apt", classifier = "jpa")
   }
 }
