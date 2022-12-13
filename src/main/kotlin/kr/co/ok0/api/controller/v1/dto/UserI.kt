@@ -1,25 +1,27 @@
-package kr.co.ok0.api.service.dto
+package kr.co.ok0.api.controller.v1.dto
 
 import java.time.Instant
 
-data class UserParamS(
-  var userId: String,
+data class UserReqI(
   var password: String,
   var userName: String,
   var userNickName: String,
 )
-data class UserResultS(
-  var result: UserResultSType,
-  var user: UserS?
+
+data class UserResI(
+  var result: UserResultIType,
+  var user: UserI?
 )
-enum class UserResultSType {
+
+enum class UserResultIType {
   SUCCESS,
   UNKNOWN_ERROR,
   EXISTS_ID,
   EXISTS_NICKNAME,
   PASSWORD_ERROR,
 }
-data class UserS(
+
+data class UserI(
   var userNo: Long,
   var userId: String,
   var userName: String,
@@ -28,13 +30,13 @@ data class UserS(
   var latLoggedIn: Instant,
 )
 
-data class UserLoginParamS(
+data class UserLoginReqI(
   var password: String
 )
 
-data class UserLoginResultS(
-  var result: UserLoginResultSType
+data class UserLoginResI(
+  var result: UserLoginResultIType
 )
-enum class UserLoginResultSType {
+enum class UserLoginResultIType {
   SUCCESS, NOT_FOUND_ID, PASSWORD_NOT_MATCHED
 }

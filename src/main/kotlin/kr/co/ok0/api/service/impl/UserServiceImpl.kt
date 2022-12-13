@@ -1,17 +1,43 @@
 package kr.co.ok0.api.service.impl
 
+import kr.co.ok0.Log
 import kr.co.ok0.api.repository.UserDetailRepository
 import kr.co.ok0.api.repository.UserRepository
 import kr.co.ok0.api.repository.entity.UserDetailJpaEntity
 import kr.co.ok0.api.repository.entity.UserJpaEntity
 import kr.co.ok0.api.service.UserService
 import kr.co.ok0.api.service.dto.*
+import org.springframework.stereotype.Service
 import java.time.Instant
 
+@Service
 class UserServiceImpl(
   private val userRepository: UserRepository,
   private val userDetailRepository: UserDetailRepository
-): UserService {
+) :Log, UserService {
+  override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
+    return UserPasswordCheckResultS(
+      result = when {
+        password.length > 50 -> {
+          logger.error("Password Length Error, $password, ${password.length}")
+          UserPasswordCheckResultSType.LENGTH_ERROR
+        }
+        password.length < 5 -> {
+          logger.error("Password Length Error, $password, ${password.length}")
+          UserPasswordCheckResultSType.LENGTH_ERROR
+        }
+        //*~`!^\-_+<>@\#$%&
+        !"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password) -> {
+          logger.error("Password Pattern Error, $password")
+          UserPasswordCheckResultSType.PATTERN_ERROR
+        }
+        else -> {
+          UserPasswordCheckResultSType.SUCCESS
+        }
+      }
+    )
+  }
+
   override fun save(paramS: UserParamS): UserResultS {
     return when {
       (isExistsUserId(paramS.userId).result != UserIdCheckResultSType.SUCCESS) -> {
@@ -28,7 +54,7 @@ class UserServiceImpl(
         )
       }
 
-      (this.isMatchedPasswordPattern(paramS.password).result != UserPasswordCheckResultSType.SUCCESS)-> {
+      (this.isMatchedPasswordPattern(paramS.password).result != UserPasswordCheckResultSType.SUCCESS) -> {
         UserResultS(
           result = UserResultSType.PASSWORD_ERROR,
           user = null
@@ -70,28 +96,34 @@ class UserServiceImpl(
     )
   }
 
-  override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
-    return UserPasswordCheckResultS(
-      result = when {
-        password.length > 50 -> UserPasswordCheckResultSType.LENGTH_ERROR
-        !"[A-Z0-9]+".toRegex().matches(password) -> UserPasswordCheckResultSType.PATTERN_ERROR
-        else -> UserPasswordCheckResultSType.SUCCESS
+  override fun isMatchedPasswordWhenLogin(id: String, password: String): Boolean =
+    userRepository.findByUserId(id)?.userPassword == password
+
+  override fun getLogin(id: String, paramS: UserLoginParamS): UserLoginResultS {
+    return userRepository.findByUserId(id)?.let {
+      if (it.userPassword == paramS.password) {
+        UserLoginResultS(
+          result = UserLoginResultSType.SUCCESS
+        )
+      } else {
+        UserLoginResultS(
+          result = UserLoginResultSType.PASSWORD_NOT_MATCHED
+        )
       }
+    } ?: UserLoginResultS(
+      result = UserLoginResultSType.NOT_FOUND_ID
     )
   }
 
-  override fun isMatchedPasswordWhenLogin(id: String, password: String): Boolean
-    = userRepository.findByUserId(id)?.userPassword == password
-
-  private fun UserDetailJpaEntity.toS() = UserResultS(
-    result = UserResultSType.SUCCESS,
-    user = UserS(
-      userNo = this.userNo,
-      userId = this.user.userId,
-      userName = this.user.userName,
-      userNickName = this.user.userNickName,
-      loggedInCount = this.loggedInCount,
-      latLoggedIn = this.latLoggedIn
-    )
+private fun UserDetailJpaEntity.toS() = UserResultS(
+  result = UserResultSType.SUCCESS,
+  user = UserS(
+    userNo = this.userNo,
+    userId = this.user.userId,
+    userName = this.user.userName,
+    userNickName = this.user.userNickName,
+    loggedInCount = this.loggedInCount,
+    latLoggedIn = this.latLoggedIn
   )
+)
 }
