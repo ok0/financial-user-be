@@ -12,6 +12,17 @@ import org.springframework.web.bind.annotation.*
 class UserController(
   private val userService: UserService
 ) {
+  @GetMapping("/{user-id}/login")
+  fun getLogin(
+    @PathVariable("user-id") userId: String,
+    @RequestParam password: String
+  ) = userService.getLogin(userId, UserLoginParamS(password = password)).toI().let {
+    when (it.result) {
+      UserLoginResultIType.SUCCESS -> ResponseEntity.ok(it)
+      else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
+    }
+  }
+
   @PostMapping("/{user-id}/join")
   fun postJoin(
     @PathVariable("user-id") userId: String,
@@ -19,17 +30,6 @@ class UserController(
   ) = userService.save(reqI.toS(userId)).toI().let {
     when (it.result) {
       UserResultIType.SUCCESS -> ResponseEntity.ok(it)
-      else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
-    }
-  }
-
-  @PostMapping("/{user-id}/login")
-  fun postLogin(
-    @PathVariable("user-id") userId: String,
-    @RequestBody reqI: UserLoginReqI
-  ) = userService.getLogin(userId, reqI.toS()).toI().let {
-    when (it.result) {
-      UserLoginResultIType.SUCCESS -> ResponseEntity.ok(it)
       else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
     }
   }
@@ -59,10 +59,6 @@ class UserController(
         latLoggedIn = it.latLoggedIn
       )
     }
-  )
-
-  private fun UserLoginReqI.toS() = UserLoginParamS(
-    password = this.password
   )
 
   private fun UserLoginResultS.toI() = UserLoginResI(

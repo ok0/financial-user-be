@@ -20,13 +20,12 @@ class PasswordConverterImpl (
     val oldKeyBytes = configuration.key.toByteArray(Charsets.UTF_8)
     oldKeyBytes.copyInto(keyBytes)
     cipherEncoder.init(Cipher.ENCRYPT_MODE, SecretKeySpec(keyBytes, configuration.keyAlgorithm))
+    cipherDecoder.init(Cipher.ENCRYPT_MODE, SecretKeySpec(keyBytes, configuration.keyAlgorithm))
   }
 
   override fun encode(text: String?): String?
     = base64Encoder.encodeToString(cipherEncoder.doFinal(text?.toByteArray(Charsets.UTF_8)))
 
-  override fun decode(text: String?): String? {
-    val decodeByte = cipherDecoder.doFinal(base64Decoder.decode(text?.toByteArray(Charsets.UTF_8)))
-    return decodeByte?.toString(Charsets.UTF_8)
-  }
+  override fun decode(text: String?): String?
+    = cipherDecoder.doFinal(base64Decoder.decode(text?.toByteArray(Charsets.UTF_8)))?.toString(Charsets.UTF_8)
 }

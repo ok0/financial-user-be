@@ -7,15 +7,22 @@ import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
 @Converter
+@Component
 class UserJpaEntityPasswordConverter: AttributeConverter<String?, String?> {
+  companion object {
+    lateinit var converter: PasswordConverter
+  }
+
   @Autowired
-  private lateinit var passwordConverter: PasswordConverter
+  fun setPasswordConverter(passwordConverter: PasswordConverter) {
+    converter = passwordConverter
+  }
 
   override fun convertToDatabaseColumn(attribute: String?): String? {
-    return this.passwordConverter.encode(attribute)
+    return converter.encode(attribute)
   }
 
   override fun convertToEntityAttribute(dbData: String?): String? {
-    return this.passwordConverter.decode(dbData)
+    return converter.decode(dbData)
   }
 }

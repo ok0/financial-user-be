@@ -1,5 +1,6 @@
 package kr.co.ok0.api.repository.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import kr.co.ok0.jpa.AbstractJpaEntity
 import javax.persistence.*
 
@@ -14,7 +15,7 @@ class UserJpaEntity(
   var userId: String,
 
   @Column(name = "USER_PASSWORD", nullable = false)
-  @Convert(converter = UserJpaEntityPasswordConverter::class)
+  @JsonIgnore
   var userPassword: String,
 
   @Column(name = "USER_NAME", nullable = false)

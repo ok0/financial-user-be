@@ -7,28 +7,31 @@ import kr.co.ok0.api.repository.entity.UserDetailJpaEntity
 import kr.co.ok0.api.repository.entity.UserJpaEntity
 import kr.co.ok0.api.service.UserService
 import kr.co.ok0.api.service.dto.*
+import org.springframework.data.repository.findByIdOrNull
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Instant
 
 @Service
 class UserServiceImpl(
   private val userRepository: UserRepository,
-  private val userDetailRepository: UserDetailRepository
+  private val userDetailRepository: UserDetailRepository,
+  private val passwordEncoder: PasswordEncoder
 ) :Log, UserService {
   override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
     return UserPasswordCheckResultS(
       result = when {
         password.length > 50 -> {
-          logger.error("Password Length Error, $password, ${password.length}")
+          logger.error("Password Length Error, ${password.length}")
           UserPasswordCheckResultSType.LENGTH_ERROR
         }
         password.length < 5 -> {
-          logger.error("Password Length Error, $password, ${password.length}")
+          logger.error("Password Length Error, ${password.length}")
           UserPasswordCheckResultSType.LENGTH_ERROR
         }
-        //*~`!^\-_+<>@\#$%&
+
         !"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password) -> {
-          logger.error("Password Pattern Error, $password")
+          logger.error("Password Pattern Error, ${"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password)}")
           UserPasswordCheckResultSType.PATTERN_ERROR
         }
         else -> {
@@ -68,7 +71,7 @@ class UserServiceImpl(
             user = UserJpaEntity(
               userNo = 0,
               userId = paramS.userId,
-              userPassword = paramS.password,
+              userPassword = passwordEncoder.encode(paramS.password),
               userName = paramS.userName,
               userNickName = paramS.userNickName
             ),
@@ -100,8 +103,14 @@ class UserServiceImpl(
     userRepository.findByUserId(id)?.userPassword == password
 
   override fun getLogin(id: String, paramS: UserLoginParamS): UserLoginResultS {
-    return userRepository.findByUserId(id)?.let {
-      if (it.userPassword == paramS.password) {
+    return userRepository.findByUserId(id)?.let { user ->
+      if (passwordEncoder.matches(paramS.password, user.userPassword)) {
+        userDetailRepository.findByIdOrNull(user.userNo)?.let { userDetail ->
+          userDetail.latLoggedIn = Instant.now()
+          userDetail.loggedInCount++
+          userDetailRepository.save(userDetail)
+        }
+
         UserLoginResultS(
           result = UserLoginResultSType.SUCCESS
         )

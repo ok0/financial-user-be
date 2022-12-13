@@ -30,13 +30,10 @@ data class UserI(
   var latLoggedIn: Instant,
 )
 
-data class UserLoginReqI(
-  var password: String
-)
-
 data class UserLoginResI(
   var result: UserLoginResultIType
 )
+
 enum class UserLoginResultIType {
   SUCCESS, NOT_FOUND_ID, PASSWORD_NOT_MATCHED
 }
