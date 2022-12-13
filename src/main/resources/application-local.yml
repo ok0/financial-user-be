@@ -8,6 +8,11 @@ spring:
         show-sql: true
         format_sql: true
 
+## todo
+user:
+  secret:
+    key: "ok0"
+
 ---
 datasource:
   user:
