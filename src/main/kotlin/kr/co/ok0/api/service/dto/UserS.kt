@@ -17,6 +17,7 @@ enum class UserResultSType {
   UNKNOWN_ERROR,
   EXISTS_ID,
   EXISTS_NICKNAME,
+  PASSWORD_ERROR,
 }
 data class UserS(
   var userNo: Long,

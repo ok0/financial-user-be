@@ -6,4 +6,6 @@ interface UserService {
   fun save(paramS: UserParamS): UserResultS
   fun isExistsUserId(id: String): UserIdCheckResultS
   fun isExistsUserNickName(nickName: String): UserNickNameCheckResultS
+  fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS
+  fun isMatchedPasswordWhenLogin(id: String, password: String): Boolean
 }

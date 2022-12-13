@@ -14,6 +14,7 @@ class UserJpaEntity(
   var userId: String,
 
   @Column(name = "USER_PASSWORD", nullable = false)
+  @Convert(converter = UserJpaEntityPasswordConverter::class)
   var userPassword: String,
 
   @Column(name = "USER_NAME", nullable = false)
