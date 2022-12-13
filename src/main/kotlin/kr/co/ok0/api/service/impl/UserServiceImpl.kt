@@ -7,6 +7,7 @@ import kr.co.ok0.api.repository.entity.UserDetailJpaEntity
 import kr.co.ok0.api.repository.entity.UserJpaEntity
 import kr.co.ok0.api.service.UserService
 import kr.co.ok0.api.service.dto.*
+import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenSaveUser
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -17,7 +18,7 @@ class UserServiceImpl(
   private val userRepository: UserRepository,
   private val userDetailRepository: UserDetailRepository,
   private val passwordEncoder: PasswordEncoder
-) :Log, UserService {
+) : Log, UserService {
   override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
     return UserPasswordCheckResultS(
       result = when {
@@ -42,15 +43,17 @@ class UserServiceImpl(
   }
 
   override fun save(paramS: UserParamS): UserResultS {
+    val user = userRepository.findByUserId(paramS.userId)
+
     return when {
-      (isExistsUserId(paramS.userId).result != UserIdCheckResultSType.SUCCESS) -> {
+      (user == null && isExistsUserId(paramS.userId).result != UserIdCheckResultSType.SUCCESS) -> {
         UserResultS(
           result = UserResultSType.EXISTS_ID,
           user = null
         )
       }
 
-      (isExistsUserNickName(paramS.userNickName).result != UserNickNameCheckResultSType.SUCCESS) -> {
+      (user == null && isExistsUserNickName(paramS.userNickName).result != UserNickNameCheckResultSType.SUCCESS) -> {
         UserResultS(
           result = UserResultSType.EXISTS_NICKNAME,
           user = null
@@ -65,20 +68,30 @@ class UserServiceImpl(
       }
 
       else -> {
-        userDetailRepository.save(
-          UserDetailJpaEntity(
-            userNo = 0,
-            user = UserJpaEntity(
+        if (user == null) {
+          val inserted = userRepository.save(
+            UserJpaEntity(
               userNo = 0,
+              userDetail = UserDetailJpaEntity(
+                userNo = 0,
+                loggedInCount = 0,
+                latLoggedIn = Instant.now()
+              ),
               userId = paramS.userId,
               userPassword = passwordEncoder.encode(paramS.password),
               userName = paramS.userName,
               userNickName = paramS.userNickName
-            ),
-            loggedInCount = 0,
-            latLoggedIn = Instant.now()
+            )
           )
-        ).toS()
+
+          userRepository.findByUserId(inserted.userId)?.toS()
+            ?: throw DataNotFoundExceptionWhenSaveUser("User Not Found Error.")
+        } else {
+          user.userName = paramS.userName
+          user.userNickName = paramS.userNickName
+          user.userPassword = passwordEncoder.encode(paramS.password)
+          userRepository.save(user).toS()
+        }
       }
     }
   }
@@ -124,15 +137,15 @@ class UserServiceImpl(
     )
   }
 
-private fun UserDetailJpaEntity.toS() = UserResultS(
-  result = UserResultSType.SUCCESS,
-  user = UserS(
-    userNo = this.userNo,
-    userId = this.user.userId,
-    userName = this.user.userName,
-    userNickName = this.user.userNickName,
-    loggedInCount = this.loggedInCount,
-    latLoggedIn = this.latLoggedIn
+  private fun UserJpaEntity.toS() = UserResultS(
+    result = UserResultSType.SUCCESS,
+    user = UserS(
+      userNo = this.userNo,
+      userId = this.userId,
+      userName = this.userName,
+      userNickName = this.userNickName,
+      loggedInCount = this.userDetail.loggedInCount,
+      latLoggedIn = this.userDetail.latLoggedIn
+    )
   )
-)
 }

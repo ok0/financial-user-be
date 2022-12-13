@@ -11,6 +11,11 @@ class UserJpaEntity(
   @Column(name = "USER_NO", nullable = false)
   var userNo: Long,
 
+  @MapsId
+  @OneToOne(optional = false)
+  @JoinColumn(name = "USER_NO")
+  var userDetail: UserDetailJpaEntity,
+
   @Column(name = "USER_ID", nullable = false)
   var userId: String,
 
@@ -19,11 +24,13 @@ class UserJpaEntity(
   var userPassword: String,
 
   @Column(name = "USER_NAME", nullable = false)
+  @Convert(converter = UserJpaEntityEncryptionConverter::class)
   var userName: String,
 
   @Column(name = "USER_NICKNAME", nullable = false)
   var userNickName: String,
 ): AbstractJpaEntity() {
+
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -33,6 +40,7 @@ class UserJpaEntity(
     other as UserJpaEntity
 
     if (userNo != other.userNo) return false
+    if (userDetail != other.userDetail) return false
     if (userId != other.userId) return false
     if (userPassword != other.userPassword) return false
     if (userName != other.userName) return false
@@ -44,6 +52,7 @@ class UserJpaEntity(
   override fun hashCode(): Int {
     var result = super.hashCode()
     result = 31 * result + userNo.hashCode()
+    result = 31 * result + userDetail.hashCode()
     result = 31 * result + userId.hashCode()
     result = 31 * result + userPassword.hashCode()
     result = 31 * result + userName.hashCode()
@@ -52,6 +61,6 @@ class UserJpaEntity(
   }
 
   override fun toString(): String {
-    return "UserJpaEntity(userNo=$userNo, userId='$userId', userPassword='$userPassword', userName='$userName', userNickName='$userNickName')"
+    return "UserJpaEntity(userNo=$userNo, userDetail=$userDetail, userId='$userId', userPassword='$userPassword', userName='$userName', userNickName='$userNickName')"
   }
 }

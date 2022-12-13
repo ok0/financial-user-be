@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration
 
 @ConfigurationProperties("user.secret")
 @Configuration
-class PasswordConverterConfiguration (
+class EncryptionConverterConfiguration (
   var key: String = "",
   val cipherTransformation: String = "AES/ECB/PKCS5PADDING",
   val keyAlgorithm: String = "AES"

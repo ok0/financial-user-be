@@ -8,12 +8,8 @@ import javax.persistence.*
 @Table(name = "USER_DETAIL")
 class UserDetailJpaEntity(
   @Id
+  @Column(name = "USER_NO", nullable = false)
   val userNo: Long,
-
-  @MapsId
-  @OneToOne(optional = false)
-  @JoinColumn(name = "USER_NO")
-  var user: UserJpaEntity,
 
   @Column(name = "LOGGEDIN_COUNT", nullable = false)
   var loggedInCount: Int,
@@ -30,7 +26,6 @@ class UserDetailJpaEntity(
     other as UserDetailJpaEntity
 
     if (userNo != other.userNo) return false
-    if (user != other.user) return false
     if (loggedInCount != other.loggedInCount) return false
     if (latLoggedIn != other.latLoggedIn) return false
 
@@ -40,13 +35,12 @@ class UserDetailJpaEntity(
   override fun hashCode(): Int {
     var result = super.hashCode()
     result = 31 * result + userNo.hashCode()
-    result = 31 * result + user.hashCode()
     result = 31 * result + loggedInCount
     result = 31 * result + latLoggedIn.hashCode()
     return result
   }
 
   override fun toString(): String {
-    return "UserDetailJpaEntity(userNo=$userNo, user=$user, loggedInCount=$loggedInCount, latLoggedIn=$latLoggedIn)"
+    return "UserDetailJpaEntity(userNo=$userNo, loggedInCount=$loggedInCount, latLoggedIn=$latLoggedIn)"
   }
 }

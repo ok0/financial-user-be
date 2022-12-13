@@ -1,6 +1,6 @@
 package kr.co.ok0.api.repository.entity
 
-import kr.co.ok0.encoder.PasswordConverter
+import kr.co.ok0.encoder.EncryptionConverter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.persistence.AttributeConverter
@@ -8,14 +8,14 @@ import javax.persistence.Converter
 
 @Converter
 @Component
-class UserJpaEntityPasswordConverter: AttributeConverter<String?, String?> {
+class UserJpaEntityEncryptionConverter: AttributeConverter<String?, String?> {
   companion object {
-    lateinit var converter: PasswordConverter
+    lateinit var converter: EncryptionConverter
   }
 
   @Autowired
-  fun setPasswordConverter(passwordConverter: PasswordConverter) {
-    converter = passwordConverter
+  fun setPasswordConverter(encryptionConverter: EncryptionConverter) {
+    converter = encryptionConverter
   }
 
   override fun convertToDatabaseColumn(attribute: String?): String? {
