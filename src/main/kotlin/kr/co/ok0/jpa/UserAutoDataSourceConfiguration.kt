@@ -21,9 +21,9 @@ import javax.sql.DataSource
 @EnableJpaRepositories(
   basePackages = ["kr.co.ok0.api.repository"],
   entityManagerFactoryRef = "userEntityManagerFactory",
-  transactionManagerRef =  "userTransactionManager"
+  transactionManagerRef = "userTransactionManager"
 )
-class UserAutoConfiguration(
+class UserAutoDataSourceConfiguration(
   private val japProperties: JpaProperties
 ) {
   @Bean
@@ -46,20 +46,22 @@ class UserAutoConfiguration(
 
   @Bean
   fun userRoutingDataSource() = MasterSlaveRoutingDataSource().apply {
-    setTargetDataSources(hashMapOf<Any, Any>(
-      "master" to userMasterDataSource(),
-      "slave" to userSlaveDataSource()))
+    setTargetDataSources(
+      hashMapOf<Any, Any>(
+        "master" to userMasterDataSource(),
+        "slave" to userSlaveDataSource()
+      )
+    )
     setDefaultTargetDataSource(userMasterDataSource())
   }
 
   @Bean
-  fun userLazyDataSource()
-      = LazyConnectionDataSourceProxy(userRoutingDataSource())
+  fun userLazyDataSource() = LazyConnectionDataSourceProxy(userRoutingDataSource())
 
   @Bean("userEntityManagerFactory")
   fun userEntityManagerFactory(): LocalContainerEntityManagerFactoryBean {
     return LocalContainerEntityManagerFactoryBean().apply {
-      dataSource = userSlaveDataSource()
+      dataSource = userLazyDataSource()
       setPackagesToScan("kr.co.ok0.api.repository.entity")
       jpaVendorAdapter = HibernateJpaVendorAdapter().apply {
         setShowSql(japProperties.isShowSql)

@@ -1,9 +1,11 @@
 package kr.co.ok0.encoder
 
+import org.springframework.stereotype.Service
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
+@Service
 class PasswordConverterImpl (
   private val configuration: PasswordConverterConfiguration
 ): PasswordConverter {

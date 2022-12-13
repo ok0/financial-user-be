@@ -7,6 +7,9 @@ spring:
       hibernate:
         show-sql: true
         format_sql: true
+user:
+  secret:
+    key: "ok0"
 
 ---
 datasource:
