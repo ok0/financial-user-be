@@ -55,7 +55,7 @@ class UserServiceImpl(
               userDetail = UserDetailJpaEntity(
                 userNo = 0,
                 loggedInCount = 0,
-                latLoggedIn = Instant.now()
+                lastLoggedIn = Instant.now()
               ),
               userId = paramS.userId,
               userPassword = passwordEncoder.encode(paramS.password),
@@ -87,7 +87,7 @@ class UserServiceImpl(
     return userRepository.findByUserId(id)?.let { user ->
       if (passwordEncoder.matches(paramS.password, user.userPassword)) {
         userDetailRepository.findByIdOrNull(user.userNo)?.let { userDetail ->
-          userDetail.latLoggedIn = Instant.now()
+          userDetail.lastLoggedIn = Instant.now()
           userDetail.loggedInCount++
           userDetailRepository.save(userDetail)
         }
@@ -153,7 +153,7 @@ class UserServiceImpl(
       userName = this.userName,
       userNickName = this.userNickName,
       loggedInCount = this.userDetail.loggedInCount,
-      latLoggedIn = this.userDetail.latLoggedIn
+      lastLoggedIn = this.userDetail.lastLoggedIn
     )
   )
 }

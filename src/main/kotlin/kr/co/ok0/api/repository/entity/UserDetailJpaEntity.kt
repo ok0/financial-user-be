@@ -15,7 +15,7 @@ class UserDetailJpaEntity(
   var loggedInCount: Int,
 
   @Column(name = "LAST_LOGGEDIN", nullable = false)
-  var latLoggedIn: Instant,
+  var lastLoggedIn: Instant,
 ): AbstractJpaEntity() {
 
   override fun equals(other: Any?): Boolean {
@@ -27,7 +27,7 @@ class UserDetailJpaEntity(
 
     if (userNo != other.userNo) return false
     if (loggedInCount != other.loggedInCount) return false
-    if (latLoggedIn != other.latLoggedIn) return false
+    if (lastLoggedIn != other.lastLoggedIn) return false
 
     return true
   }
@@ -36,11 +36,11 @@ class UserDetailJpaEntity(
     var result = super.hashCode()
     result = 31 * result + userNo.hashCode()
     result = 31 * result + loggedInCount
-    result = 31 * result + latLoggedIn.hashCode()
+    result = 31 * result + lastLoggedIn.hashCode()
     return result
   }
 
   override fun toString(): String {
-    return "UserDetailJpaEntity(userNo=$userNo, loggedInCount=$loggedInCount, latLoggedIn=$latLoggedIn)"
+    return "UserDetailJpaEntity(userNo=$userNo, loggedInCount=$loggedInCount, lastLoggedIn=$lastLoggedIn)"
   }
 }

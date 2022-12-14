@@ -90,7 +90,7 @@ class UserController(
         userName = it.userName,
         userNickName = it.userNickName,
         loggedInCount = it.loggedInCount,
-        latLoggedIn = it.latLoggedIn
+        lastLoggedIn = it.lastLoggedIn
       )
     }
   )
