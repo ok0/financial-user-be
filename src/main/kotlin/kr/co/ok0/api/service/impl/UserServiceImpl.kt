@@ -11,6 +11,7 @@ import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenSaveUser
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 
 @Service
@@ -19,6 +20,7 @@ class UserServiceImpl(
   private val userDetailRepository: UserDetailRepository,
   private val passwordEncoder: PasswordEncoder
 ) : Log, UserService {
+  @Transactional(readOnly = true)
   override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
     return UserPasswordCheckResultS(
       result = when {
@@ -42,6 +44,7 @@ class UserServiceImpl(
     )
   }
 
+  @Transactional(readOnly = false)
   override fun save(paramS: UserParamS): UserResultS {
     val user = userRepository.findByUserId(paramS.userId)
 
