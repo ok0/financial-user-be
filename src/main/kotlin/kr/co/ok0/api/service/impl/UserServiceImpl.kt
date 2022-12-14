@@ -23,7 +23,7 @@ class UserServiceImpl(
 ) : Log, UserService {
   @Transactional(readOnly = false)
   override fun save(paramS: UserParamS): UserResultS {
-    val user = userRepository.findByUserIdOrNull(paramS.userId)
+    val user = userRepository.findByUserId(paramS.userId)
 
     return when {
       (user == null && isExistsUserId(paramS.userId).result != UserIdCheckResultSType.SUCCESS) -> {
@@ -64,7 +64,7 @@ class UserServiceImpl(
             )
           )
 
-          userRepository.findByUserIdOrNull(inserted.userId)?.toS()
+          userRepository.findByUserId(inserted.userId)?.toS()
             ?: throw DataNotFoundExceptionWhenSaveUser("User Not Found Error.")
         } else {
           user.userName = paramS.userName
@@ -78,13 +78,13 @@ class UserServiceImpl(
 
   @Transactional(readOnly = true)
   override fun getUserByUserId(id: String): UserResultS {
-    return userRepository.findByUserIdOrNull(id)?.toS()
+    return userRepository.findByUserId(id)?.toS()
       ?: throw DataNotFoundExceptionWhenFindUser("Member Not Found Error")
   }
 
   @Transactional(readOnly = false)
   override fun getLogin(id: String, paramS: UserLoginParamS): UserLoginResultS {
-    return userRepository.findByUserIdOrNull(id)?.let { user ->
+    return userRepository.findByUserId(id)?.let { user ->
       if (passwordEncoder.matches(paramS.password, user.userPassword)) {
         userDetailRepository.findByIdOrNull(user.userNo)?.let { userDetail ->
           userDetail.latLoggedIn = Instant.now()
@@ -107,7 +107,7 @@ class UserServiceImpl(
 
   override fun isExistsUserId(id: String): UserIdCheckResultS {
     return UserIdCheckResultS(
-      result = userRepository.findByUserIdOrNull(id)?.let {
+      result = userRepository.findByUserId(id)?.let {
         UserIdCheckResultSType.EXISTS
       } ?: UserIdCheckResultSType.SUCCESS
     )
@@ -115,7 +115,7 @@ class UserServiceImpl(
 
   override fun isExistsUserNickName(nickName: String): UserNickNameCheckResultS {
     return UserNickNameCheckResultS(
-      result = userRepository.findByUserNickNameOrNull(nickName)?.let {
+      result = userRepository.findByUserNickName(nickName)?.let {
         UserNickNameCheckResultSType.EXISTS
       } ?: UserNickNameCheckResultSType.SUCCESS
     )
