@@ -7,6 +7,7 @@ import kr.co.ok0.api.repository.entity.UserDetailJpaEntity
 import kr.co.ok0.api.repository.entity.UserJpaEntity
 import kr.co.ok0.api.service.UserService
 import kr.co.ok0.api.service.dto.*
+import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenFindUser
 import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenSaveUser
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -20,33 +21,9 @@ class UserServiceImpl(
   private val userDetailRepository: UserDetailRepository,
   private val passwordEncoder: PasswordEncoder
 ) : Log, UserService {
-  @Transactional(readOnly = true)
-  override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
-    return UserPasswordCheckResultS(
-      result = when {
-        password.length > 50 -> {
-          logger.error("Password Length Error, ${password.length}")
-          UserPasswordCheckResultSType.LENGTH_ERROR
-        }
-        password.length < 5 -> {
-          logger.error("Password Length Error, ${password.length}")
-          UserPasswordCheckResultSType.LENGTH_ERROR
-        }
-
-        !"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password) -> {
-          logger.error("Password Pattern Error, ${"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password)}")
-          UserPasswordCheckResultSType.PATTERN_ERROR
-        }
-        else -> {
-          UserPasswordCheckResultSType.SUCCESS
-        }
-      }
-    )
-  }
-
   @Transactional(readOnly = false)
   override fun save(paramS: UserParamS): UserResultS {
-    val user = userRepository.findByUserId(paramS.userId)
+    val user = userRepository.findByUserIdOrNull(paramS.userId)
 
     return when {
       (user == null && isExistsUserId(paramS.userId).result != UserIdCheckResultSType.SUCCESS) -> {
@@ -87,7 +64,7 @@ class UserServiceImpl(
             )
           )
 
-          userRepository.findByUserId(inserted.userId)?.toS()
+          userRepository.findByUserIdOrNull(inserted.userId)?.toS()
             ?: throw DataNotFoundExceptionWhenSaveUser("User Not Found Error.")
         } else {
           user.userName = paramS.userName
@@ -99,27 +76,15 @@ class UserServiceImpl(
     }
   }
 
-  override fun isExistsUserId(id: String): UserIdCheckResultS {
-    return UserIdCheckResultS(
-      result = userRepository.findByUserId(id)?.let {
-        UserIdCheckResultSType.EXISTS
-      } ?: UserIdCheckResultSType.SUCCESS
-    )
+  @Transactional(readOnly = true)
+  override fun getUserByUserId(id: String): UserResultS {
+    return userRepository.findByUserIdOrNull(id)?.toS()
+      ?: throw DataNotFoundExceptionWhenFindUser("Member Not Found Error")
   }
 
-  override fun isExistsUserNickName(nickName: String): UserNickNameCheckResultS {
-    return UserNickNameCheckResultS(
-      result = userRepository.findByUserNickName(nickName)?.let {
-        UserNickNameCheckResultSType.EXISTS
-      } ?: UserNickNameCheckResultSType.SUCCESS
-    )
-  }
-
-  override fun isMatchedPasswordWhenLogin(id: String, password: String): Boolean =
-    userRepository.findByUserId(id)?.userPassword == password
-
+  @Transactional(readOnly = false)
   override fun getLogin(id: String, paramS: UserLoginParamS): UserLoginResultS {
-    return userRepository.findByUserId(id)?.let { user ->
+    return userRepository.findByUserIdOrNull(id)?.let { user ->
       if (passwordEncoder.matches(paramS.password, user.userPassword)) {
         userDetailRepository.findByIdOrNull(user.userNo)?.let { userDetail ->
           userDetail.latLoggedIn = Instant.now()
@@ -137,6 +102,46 @@ class UserServiceImpl(
       }
     } ?: UserLoginResultS(
       result = UserLoginResultSType.NOT_FOUND_ID
+    )
+  }
+
+  override fun isExistsUserId(id: String): UserIdCheckResultS {
+    return UserIdCheckResultS(
+      result = userRepository.findByUserIdOrNull(id)?.let {
+        UserIdCheckResultSType.EXISTS
+      } ?: UserIdCheckResultSType.SUCCESS
+    )
+  }
+
+  override fun isExistsUserNickName(nickName: String): UserNickNameCheckResultS {
+    return UserNickNameCheckResultS(
+      result = userRepository.findByUserNickNameOrNull(nickName)?.let {
+        UserNickNameCheckResultSType.EXISTS
+      } ?: UserNickNameCheckResultSType.SUCCESS
+    )
+  }
+
+  @Transactional(readOnly = true)
+  override fun isMatchedPasswordPattern(password: String): UserPasswordCheckResultS {
+    return UserPasswordCheckResultS(
+      result = when {
+        password.length > 50 -> {
+          logger.error("Password Length Error, ${password.length}")
+          UserPasswordCheckResultSType.LENGTH_ERROR
+        }
+        password.length < 5 -> {
+          logger.error("Password Length Error, ${password.length}")
+          UserPasswordCheckResultSType.LENGTH_ERROR
+        }
+
+        !"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password) -> {
+          logger.error("Password Pattern Error, ${"[a-zA-Z0-9!@#$%^&*()_+\\-=]+".toRegex().matches(password)}")
+          UserPasswordCheckResultSType.PATTERN_ERROR
+        }
+        else -> {
+          UserPasswordCheckResultSType.SUCCESS
+        }
+      }
     )
   }
 
