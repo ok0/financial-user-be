@@ -6,9 +6,9 @@ import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 @Service
-class PasswordConverterImpl (
-  private val configuration: PasswordConverterConfiguration
-): PasswordConverter {
+class EncryptionConverterImpl (
+  private val configuration: EncryptionConverterConfiguration
+): EncryptionConverter {
   private var cipherEncoder: Cipher = Cipher.getInstance(configuration.cipherTransformation)
   private var base64Encoder: Base64.Encoder = Base64.getMimeEncoder()
 
@@ -19,8 +19,9 @@ class PasswordConverterImpl (
     val keyBytes = ByteArray(16)
     val oldKeyBytes = configuration.key.toByteArray(Charsets.UTF_8)
     oldKeyBytes.copyInto(keyBytes)
-    cipherEncoder.init(Cipher.ENCRYPT_MODE, SecretKeySpec(keyBytes, configuration.keyAlgorithm))
-    cipherDecoder.init(Cipher.ENCRYPT_MODE, SecretKeySpec(keyBytes, configuration.keyAlgorithm))
+    val keySpec = SecretKeySpec(keyBytes, configuration.keyAlgorithm)
+    cipherEncoder.init(Cipher.ENCRYPT_MODE, keySpec)
+    cipherDecoder.init(Cipher.DECRYPT_MODE, keySpec)
   }
 
   override fun encode(text: String?): String?

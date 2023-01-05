@@ -27,7 +27,7 @@ data class UserI(
   var userName: String,
   var userNickName: String,
   var loggedInCount: Int,
-  var latLoggedIn: Instant,
+  var lastLoggedIn: Instant,
 )
 
 data class UserLoginResI(

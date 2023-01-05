@@ -3,6 +3,9 @@ package kr.co.ok0.api.controller.v1.user
 import kr.co.ok0.api.controller.v1.dto.*
 import kr.co.ok0.api.service.UserService
 import kr.co.ok0.api.service.dto.*
+import kr.co.ok0.api.service.exception.BusinessLogicException
+import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenFindUser
+import kr.co.ok0.api.service.exception.DataNotFoundExceptionWhenSaveUser
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -16,22 +19,53 @@ class UserController(
   fun getLogin(
     @PathVariable("user-id") userId: String,
     @RequestParam password: String
-  ) = userService.getLogin(userId, UserLoginParamS(password = password)).toI().let {
-    when (it.result) {
-      UserLoginResultIType.SUCCESS -> ResponseEntity.ok(it)
-      else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
-    }
+  ) = try {
+    userService
+      .getLogin(userId, UserLoginParamS(password = password))
+      .toI()
+      .let {
+        when (it.result) {
+          UserLoginResultIType.SUCCESS -> ResponseEntity.ok(it)
+          else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
+        }
+      }
+  } catch (e: BusinessLogicException) {
+    ResponseEntity.internalServerError()
   }
 
-  @PostMapping("/{user-id}/join")
+  @PostMapping("/{user-id}")
   fun postJoin(
     @PathVariable("user-id") userId: String,
     @RequestBody reqI: UserReqI
-  ) = userService.save(reqI.toS(userId)).toI().let {
-    when (it.result) {
-      UserResultIType.SUCCESS -> ResponseEntity.ok(it)
-      else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
-    }
+  ) = try {
+    userService
+      .save(reqI.toS(userId))
+      .toI()
+      .let {
+        when (it.result) {
+          UserResultIType.SUCCESS -> ResponseEntity.ok(it)
+          else -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(it)
+        }
+      }
+  } catch (e: DataNotFoundExceptionWhenSaveUser) {
+    ResponseEntity.internalServerError()
+  }
+
+  @GetMapping("/{user-id}")
+  fun getUser(
+    @PathVariable("user-id") userId: String
+  ) = try {
+    userService
+      .getUserByUserId(userId)
+      .toI()
+      .let {
+        when (it.result) {
+          UserResultIType.SUCCESS -> ResponseEntity.ok(it)
+          else -> ResponseEntity.notFound()
+        }
+      }
+  } catch (e: DataNotFoundExceptionWhenFindUser) {
+    ResponseEntity.notFound()
   }
 
   private fun UserReqI.toS(userId: String) = UserParamS(
@@ -56,7 +90,7 @@ class UserController(
         userName = it.userName,
         userNickName = it.userNickName,
         loggedInCount = it.loggedInCount,
-        latLoggedIn = it.latLoggedIn
+        lastLoggedIn = it.lastLoggedIn
       )
     }
   )
